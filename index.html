@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>WeatherNow</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Sora:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#371F9B; --bg-2:#4a2bbf; --bg-3:#6636FF;
+    --glass-1:rgba(255,255,255,.15); --glass-2:rgba(255,255,255,.06);
+    --pill:rgba(255,255,255,.22); --stroke:rgba(255,255,255,.25);
+    --txt:#F6F3FF; --sun-1:#FFF3B5; --sun-2:#FFD86F; --sun-3:#F6B23E;
+    --bolt:#FFD644; --bolt-glow:#FFE98F;
+  }
+
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--txt);
+    font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    display:grid; place-items:center; min-height:100svh;
+    background:radial-gradient(1200px 800px at 50% 10%, var(--bg-3) 0%, var(--bg-2) 40%, var(--bg-1) 100%);
+    overflow-x:hidden;
+  }
+
+  /* twinkles */
+  .twinkle{
+    position:fixed; width:3px;height:3px;border-radius:50%;
+    background:radial-gradient(circle,#FFE27A 40%,transparent 60%);
+    opacity:.9; pointer-events:none; z-index:1;
+    animation:twinkle 2.2s ease-in-out infinite;
+  }
+  @keyframes twinkle{0%,100%{transform:scale(.8);opacity:.8}50%{transform:scale(1.25);opacity:1}}
+
+  /* hero card */
+  .hero{
+    position:relative; z-index:5; /* sits above twinkles */
+    width:min(960px,92vw);
+    padding: clamp(28px,5vw,48px);
+    border-radius:26px;
+    background:linear-gradient(120deg,var(--glass-1),var(--glass-2));
+    box-shadow:0 20px 60px rgba(0,0,0,.35);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    overflow:hidden;
+  }
+  .title{
+    text-align:center; margin:6px 0 10px;
+    font-size: clamp(36px,6vw,64px); font-weight:900; letter-spacing:.4px;
+    background:linear-gradient(90deg,#9CF2FF,#9C8BFF,#FF96E0,#FFD86F);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .subtitle{ text-align:center; margin:0 0 24px; font-weight:600; opacity:.95 }
+
+  .row{display:flex; gap:16px; align-items:center; justify-content:center}
+  .location-pill{
+    display:flex; align-items:center; gap:10px;
+    background:var(--pill); padding:12px 16px; border-radius:16px;
+    box-shadow:inset 0 0 0 1px var(--stroke);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    min-width:min(640px,92vw); z-index:15;
+  }
+  .label{opacity:.9; font-weight:700}
+  select{
+    appearance:none; border:none; background:transparent; color:var(--txt);
+    font:700 16px/1.2 Poppins,system-ui,sans-serif; padding:0 6px; outline:none; cursor:pointer;
+  }
+  .chev{margin-left:auto; opacity:.8}
+  .btn-cta{
+    border:0; border-radius:14px; padding:12px 18px; cursor:pointer;
+    font:700 16px/1 Poppins,system-ui,sans-serif; color:#1C1158;
+    background:linear-gradient(90deg,#FFD86F 0%, #FCA64B 100%);
+    box-shadow:0 10px 30px rgba(245,181,78,.45);
+    transition:transform .15s ease, filter .15s ease;
+  }
+  .btn-cta:hover{ transform:translateY(-1px); filter:brightness(1.05) }
+
+  /* decorative sky group */
+  .illustration{
+    position:absolute; right:clamp(0px,2vw,16px); bottom: clamp(-10px,-1vw,-6px);
+    width:min(520px,52%); height:220px; pointer-events:none; z-index:10;
+  }
+
+  /* SUN (SVG) */
+  .sun{ position:absolute; right:72px; top:-18px; width:160px; z-index:10; }
+  .sun svg{filter: drop-shadow(0 0 22px rgba(255,216,111,.6));}
+
+  /* CLOUDS */
+  .cloud{ position:absolute; z-index:12; filter: drop-shadow(0 12px 24px rgba(0,0,0,.20)); }
+  .cloud svg .core{ fill:#fff } .cloud svg .shade{ fill:#E9ECF6 }
+  .c-big{ right:26px; bottom:38px; width:230px }
+  .c-small{ right:240px; bottom:8px; width:170px }
+
+  /* STORM (cloud + animated bolt) */
+  .storm{ position:absolute; right:320px; bottom:36px; width:170px; z-index:13;
+          filter: drop-shadow(0 12px 24px rgba(0,0,0,.25)); }
+  .bolt{
+    position:absolute; left:62%; top:58%; width:0; height:0; z-index:14;
+    border-left: 10px solid transparent; border-right: 8px solid transparent;
+    border-top: 0; border-bottom: 26px solid var(--bolt);
+    transform: skewX(-15deg) translate(-50%,-50%);
+    filter: drop-shadow(0 0 10px var(--bolt-glow));
+    animation:flash 2.6s infinite cubic-bezier(.4,0,.8,1);
+  }
+  .bolt:after{
+    content:""; position:absolute; top:18px; left:-6px;
+    border-left: 8px solid transparent; border-right: 10px solid transparent;
+    border-bottom: 0; border-top: 26px solid var(--bolt);
+    filter: drop-shadow(0 0 10px var(--bolt-glow));
+  }
+  @keyframes flash{
+    0%, 76%, 100% { opacity:0 }
+    78% { opacity:1 }
+    82% { opacity:0 }
+    85% { opacity:1 }
+    88% { opacity:0 }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1 class="title">WeatherNow</h1>
+  <p class="subtitle">What to wear today!</p>
+
+  <div class="row">
+    <div class="location-pill">
+      <span class="label">Location</span>
+      <select id="countrySelect" title="Country">
+        <option value="LB" selected>Lebanon — Beirut</option>
+        <option value="AE">United Arab Emirates — Abu Dhabi</option>
+        <option value="SA">Saudi Arabia — Riyadh</option>
+        <option value="QA">Qatar — Doha</option>
+        <option value="KW">Kuwait — Kuwait City</option>
+        <option value="OM">Oman — Muscat</option>
+        <option value="BH">Bahrain — Manama</option>
+        <option value="EG">Egypt — Cairo</option>
+        <option value="TR">Türkiye — Ankara</option>
+        <option value="JO">Jordan — Amman</option>
+        <option value="SY">Syria — Damascus</option>
+        <option value="IQ">Iraq — Baghdad</option>
+        <option value="YE">Yemen — Sana'a</option>
+        <option value="IR">Iran — Tehran</option>
+        <option value="DE">Germany — Berlin</option>
+        <option value="FR">France — Paris</option>
+        <option value="ES">Spain — Madrid</option>
+        <option value="IT">Italy — Rome</option>
+        <option value="GB">United Kingdom — London</option>
+        <option value="US">United States — Washington, D.C.</option>
+        <option value="CA">Canada — Ottawa</option>
+        <option value="BR">Brazil — Brasília</option>
+        <option value="AR">Argentina — Buenos Aires</option>
+        <option value="MX">Mexico — Mexico City</option>
+        <option value="IN">India — New Delhi</option>
+        <option value="CN">China — Beijing</option>
+        <option value="JP">Japan — Tokyo</option>
+        <option value="KR">South Korea — Seoul</option>
+        <option value="AU">Australia — Canberra</option>
+        <option value="ZA">South Africa — Pretoria</option>
+      </select>
+      <span class="chev">▾</span>
+      <button class="btn-cta" id="goBtn">See forecast</button>
+    </div>
+  </div>
+
+  <!-- Decorative sky (now layered above everything) -->
+  <div class="illustration">
+    <!-- SUN with rays -->
+    <div class="sun">
+      <svg viewBox="0 0 220 220" width="100%" aria-hidden="true">
+        <!-- rays -->
+        <g stroke="#FFC95A" stroke-linecap="round" stroke-width="10" opacity=".95">
+          <line x1="110" y1="8"   x2="110" y2="36"/>
+          <line x1="110" y1="184" x2="110" y2="212"/>
+          <line x1="8"   y1="110" x2="36"  y2="110"/>
+          <line x1="184" y1="110" x2="212" y2="110"/>
+          <line x1="38"  y1="38"  x2="58"  y2="58"/>
+          <line x1="162" y1="162" x2="182" y2="182"/>
+          <line x1="38"  y1="182" x2="58"  y2="162"/>
+          <line x1="162" y1="58"  x2="182" y2="38"/>
+        </g>
+        <!-- core -->
+        <defs>
+          <radialGradient id="gSun" cx="35%" cy="35%">
+            <stop offset="0%"  stop-color="var(--sun-1)"/>
+            <stop offset="55%" stop-color="var(--sun-2)"/>
+            <stop offset="100%" stop-color="var(--sun-3)"/>
+          </radialGradient>
+        </defs>
+        <circle cx="110" cy="110" r="55" fill="url(#gSun)"/>
+      </svg>
+    </div>
+
+    <!-- big cloud -->
+    <div class="cloud c-big">
+      <svg viewBox="0 0 400 190" width="100%" aria-hidden="true">
+        <path class="shade" d="M80 150c-35 0-60-22-60-52 0-33 28-56 61-54 9-25 33-42 62-42 34 0 62 23 67 54 4-1 9-2 13-2 30 0 55 22 55 49s-25 47-55 47H80z"/>
+        <path class="core"  d="M92 150c-35 0-60-22-60-52 0-31 27-54 59-52 11-24 35-40 62-40 34 0 62 23 67 54 6-2 11-3 17-3 30 0 55 22 55 49s-25 44-55 44H92z"/>
+      </svg>
+    </div>
+    <!-- small cloud -->
+    <div class="cloud c-small">
+      <svg viewBox="0 0 320 140" width="100%" aria-hidden="true">
+        <path class="shade" d="M70 110c-30 0-50-18-50-42 0-26 23-45 50-44 8-20 28-34 52-34 29 0 52 18 56 42 4-1 7-1 11-1 25 0 45 17 45 38s-20 41-45 41H70z"/>
+        <path class="core"  d="M82 110c-30 0-50-18-50-42 0-24 21-42 47-41 9-20 30-32 52-32 29 0 52 18 56 42 5-1 9-2 14-2 25 0 45 17 45 38s-20 37-45 37H82z"/>
+      </svg>
+    </div>
+
+    <!-- storm cloud with animated lightning -->
+    <div class="storm">
+      <svg viewBox="0 0 320 140" width="100%" aria-hidden="true">
+        <path fill="#E6EAF4" d="M70 110c-30 0-50-18-50-42 0-26 23-45 50-44 8-20 28-34 52-34 29 0 52 18 56 42 4-1 7-1 11-1 25 0 45 17 45 38s-20 41-45 41H70z"/>
+        <path fill="#fff"    d="M82 110c-30 0-50-18-50-42 0-24 21-42 47-41 9-20 30-32 52-32 29 0 52 18 56 42 5-1 9-2 14-2 25 0 45 17 45 38s-20 37-45 37H82z"/>
+      </svg>
+      <span class="bolt"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Lots of twinkles
+  (function twinkles(){
+    const N=110, frag=document.createDocumentFragment();
+    for(let i=0;i<N;i++){
+      const s=document.createElement('span');
+      s.className='twinkle';
+      s.style.left=(Math.random()*100)+'vw';
+      s.style.top=(Math.random()*100)+'vh';
+      s.style.animationDelay=(Math.random()*2)+'s';
+      s.style.opacity=(0.7+Math.random()*0.3).toFixed(2);
+      frag.appendChild(s);
+    }
+    document.body.appendChild(frag);
+  })();
+
+  // capitals used to build the target URL
+  const capitalMap={LB:"Beirut",AE:"Abu Dhabi",SA:"Riyadh",QA:"Doha",KW:"Kuwait City",OM:"Muscat",BH:"Manama",EG:"Cairo",TR:"Ankara",JO:"Amman",SY:"Damascus",IQ:"Baghdad",YE:"Sana'a",IR:"Tehran",DE:"Berlin",FR:"Paris",ES:"Madrid",IT:"Rome",GB:"London",US:"Washington, D.C.",CA:"Ottawa",BR:"Brasília",AR:"Buenos Aires",MX:"Mexico City",IN:"New Delhi",CN:"Beijing",JP:"Tokyo",KR:"Seoul",AU:"Canberra",ZA:"Pretoria"};
+
+  const countrySelect=document.getElementById('countrySelect');
+  document.getElementById('goBtn').addEventListener('click',()=>{
+    const code=countrySelect.value||'LB';
+    const city=capitalMap[code]||'Beirut';
+    location.href=`beirut.html?city=${encodeURIComponent(city)}&cc=${code}`;
+  });
+</script>
+</body>
+</html>
